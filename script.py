@@ -32,10 +32,31 @@ def load_markers(project_path):
     return markers
 
 
+# Load setlist with order from setlist_order.txt (if it exists)
+def load_setlist_with_order(project_path):
+    markers = load_markers(project_path)
+    order_file = os.path.join(project_path, "setlist_order.txt")
+
+    if os.path.exists(order_file):
+        with open(order_file, "r") as f:
+            order = [line.strip() for line in f if line.strip()]
+        ordered_markers = []
+        unordered = markers.copy()
+        for name in order:
+            for m in unordered:
+                if m[0] == name:
+                    ordered_markers.append(m)
+                    unordered.remove(m)
+                    break
+        return ordered_markers + unordered
+    return markers
+
+
 class ReaperSetApp:
     def __init__(self):
         self.project_path = None
         self.setlist = []
+        self.edit_mode = False
 
         self.root = tk.Tk()
         self.root.title("ReaperSet Setlist")
@@ -46,6 +67,9 @@ class ReaperSetApp:
 
         self.refresh_button = tk.Button(self.root, text="Refresh", command=self.refresh)
         self.refresh_button.pack(side=tk.BOTTOM, fill=tk.X)
+
+        self.edit_button = tk.Button(self.root, text="Edit Setlist", command=self.toggle_edit_mode)
+        self.edit_button.pack(side=tk.BOTTOM, fill=tk.X)
 
         self.controls_frame = tk.Frame(self.root)
         self.controls_frame.pack(side=tk.BOTTOM, fill=tk.X)
@@ -62,8 +86,16 @@ class ReaperSetApp:
         self.root.after(1000, self.auto_refresh)
         self.root.mainloop()
 
+    def toggle_edit_mode(self):
+        self.edit_mode = not self.edit_mode
+        self.edit_button.config(text="Save Setlist" if self.edit_mode else "Edit Setlist")
+        if not self.edit_mode:
+            self.save_setlist()
+        self.update_buttons()
+
     def auto_refresh(self):
-        self.refresh()
+        if not self.edit_mode:
+            self.refresh()
         self.root.after(5000, self.auto_refresh)  # refresh every 5 sec
 
     def refresh(self):
@@ -78,19 +110,50 @@ class ReaperSetApp:
             print(f"Detected new project path: {project_path}")
             self.project_path = project_path
 
-        self.setlist = load_markers(self.project_path)
+        self.setlist = load_setlist_with_order(self.project_path)
         self.update_buttons()
 
     def update_buttons(self):
         for widget in self.frame.winfo_children():
             widget.destroy()
-        for name, timecode in self.setlist:
-            btn = tk.Button(self.frame, text=name, command=lambda t=timecode: self.jump_to_marker(t))
-            btn.pack(pady=5, fill=tk.X)
+
+        for i, (name, timecode) in enumerate(self.setlist):
+            row = tk.Frame(self.frame)
+            row.pack(fill=tk.X, pady=2)
+
+            btn = tk.Button(row, text=name, command=lambda t=timecode: self.jump_to_marker(t))
+            btn.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+            if self.edit_mode:
+                if i > 0:
+                    up_btn = tk.Button(row, text="↑", width=3, command=lambda i=i: self.move_marker_up(i))
+                    up_btn.pack(side=tk.LEFT)
+                if i < len(self.setlist) - 1:
+                    down_btn = tk.Button(row, text="↓", width=3, command=lambda i=i: self.move_marker_down(i))
+                    down_btn.pack(side=tk.LEFT)
+
+    def save_setlist(self):
+        if not self.project_path:
+            return
+        order_file = os.path.join(self.project_path, "setlist_order.txt")
+        try:
+            with open(order_file, "w") as f:
+                for name, _ in self.setlist:
+                    f.write(f"{name}\n")
+            print(f"Saved setlist order to {order_file}")
+        except Exception as e:
+            print(f"Error saving setlist: {e}")
 
     def jump_to_marker(self, time_seconds):
         client.send_message("/time", time_seconds)
-        client.send_message("/play", 1)
+        # Ask REAPER if it is playing
+        import subprocess
+        is_playing = subprocess.run(
+            ['osascript', '-e', 'tell application "REAPER" to return playing'],
+            capture_output=True, text=True
+        )
+        if is_playing.stdout.strip() == "true":
+            client.send_message("/play", 1)
         print(f"Jumping to {time_seconds}s")
 
     def play(self):
@@ -104,6 +167,14 @@ class ReaperSetApp:
     def stop(self):
         client.send_message("/stop", 1)
         print("Stopped")
+
+    def move_marker_up(self, index):
+        self.setlist[index - 1], self.setlist[index] = self.setlist[index], self.setlist[index - 1]
+        self.update_buttons()
+
+    def move_marker_down(self, index):
+        self.setlist[index], self.setlist[index + 1] = self.setlist[index + 1], self.setlist[index]
+        self.update_buttons()
 
 
 if __name__ == "__main__":
