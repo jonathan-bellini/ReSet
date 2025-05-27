@@ -47,6 +47,18 @@ class ReaperSetApp:
         self.refresh_button = tk.Button(self.root, text="Refresh", command=self.refresh)
         self.refresh_button.pack(side=tk.BOTTOM, fill=tk.X)
 
+        self.controls_frame = tk.Frame(self.root)
+        self.controls_frame.pack(side=tk.BOTTOM, fill=tk.X)
+
+        self.play_button = tk.Button(self.controls_frame, text="Play", command=self.play)
+        self.play_button.pack(side=tk.LEFT, expand=True, fill=tk.X)
+
+        self.pause_button = tk.Button(self.controls_frame, text="Pause", command=self.pause)
+        self.pause_button.pack(side=tk.LEFT, expand=True, fill=tk.X)
+
+        self.stop_button = tk.Button(self.controls_frame, text="Stop", command=self.stop)
+        self.stop_button.pack(side=tk.LEFT, expand=True, fill=tk.X)
+
         self.root.after(1000, self.auto_refresh)
         self.root.mainloop()
 
@@ -80,6 +92,18 @@ class ReaperSetApp:
         client.send_message("/time", time_seconds)
         client.send_message("/play", 1)
         print(f"Jumping to {time_seconds}s")
+
+    def play(self):
+        client.send_message("/play", 1)
+        print("Playing")
+
+    def pause(self):
+        client.send_message("/pause", 1)
+        print("Paused")
+
+    def stop(self):
+        client.send_message("/stop", 1)
+        print("Stopped")
 
 
 if __name__ == "__main__":
