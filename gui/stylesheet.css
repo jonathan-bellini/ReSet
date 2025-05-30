@@ -1,0 +1,133 @@
+/*Theme*/
+:root {
+	/*Colors*/
+	--primary-text: #ffffff;
+	--primary-bg: #001314;
+	--color1: #003135;
+	--color2: #024950;
+	--color3: #0fa4af;
+	--color4: #AFDDE5;
+  	--accent: #964734;
+	/*Sizes*/
+	--row-height: 50px;
+
+
+}
+
+/*Resets, main */
+h1, h2, h3, h4, a, div, section{
+	color: var(--primary-text);
+	font-family: "Montserrat", sans-serif;
+  	font-weight: 300;
+  	font-style: normal;
+ 	cursor: default;
+}
+html, body{
+	height: 100%;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	background-color: var(--primary-bg)
+}
+a {
+  text-decoration: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/*Setlist*/
+#setlist{
+	position: relative;
+	top: 40px;
+}
+.row{
+	display: flex;
+	height: var(--row-height);
+	width: 100%;
+}
+.song-item{
+  	align-items: center;
+	background-color: var(--color1);
+}
+.song-time{
+	right: 0px;
+	padding-right: 20px;
+	font-size: 1.2em;
+	cursor: pointer;
+}
+.song-title{
+	cursor: pointer;
+	padding-left: 20px;
+	font-size: 1.5em;
+	flex-grow: 1;
+}
+.row-item{
+	display: flex;
+	height: var(--row-height);
+	align-items: center;
+}
+.arrow-button {
+  background-color: var(--color2);
+  border: none;
+  border-radius: 0;
+  width: var(--row-height);
+  height: var(--row-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+.arrow-button:hover {
+  background-color: var(--color3);
+}
+.arrow-icon {
+  width: 40px;
+  height: 40px;
+}
+.song-sections {
+  display: none;
+}
+.song-sections.show {
+  display: block;
+}
+.song-sections > div{
+  	align-items: center;
+	background-color: var(--color1);
+	cursor: pointer;
+	padding-left: 20px;
+	font-size: 1.1em;
+	border-top: 0.1px solid var(--color2);
+	border-top: 0.1px solid var(--color2);
+}
+
+/*Header*/
+
+#header{
+	height: 40px;
+	position: fixed;
+	background-color: var(--primary-bg);
+	width: 100vw;
+	display: flex;
+	z-index: 1;
+}
+.header-title{
+	display: flex;
+	align-items: center;
+	height: 100%;
+	padding-left: 20px;
+	font-size: 1.5em;
+	font-weight: 600;
+	color: var(--accent);
+	flex-grow: 1;
+}
+.settings-container{
+	position: relative;
+	top: 5px;
+	padding-right: 20px;
+	cursor: pointer;
+}
+.settings-container > svg{
+	fill: var(--accent);
+}
