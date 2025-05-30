@@ -5,8 +5,8 @@
 	<style>@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');</style>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" type="text/css" href="stylesheet.css">
-	<script src="script.js"></script>
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='stylesheet.css') }}">
+	
 </head>
 <body>
 	<section id="header">
@@ -19,65 +19,50 @@
 		</div>
 	</section>
 	<section id="setlist">
-		<div>
-			<div class="song">
-				<div class="song-item row">
-					<button class="arrow-button" aria-label="Expand">
-						<svg viewBox="0 0 24 24" class="arrow-icon" xmlns="http://www.w3.org/2000/svg">
-							<path d="M7 10l5 5 5-5" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-						</svg>
-					</button>
-					<div class="song-title row-item">Test Title</div>
-					<div class="song-time row-item">03:41</div>
-				</div>
-
-				<div class="song-sections">
-					<div class="row">Intro</div>
-					<div class="row">Verse</div>
-					<div class="row">Pre</div>
-
-				</div>
-			</div>
-			<div class="song">
-				<div class="song-item row">
-					<button class="arrow-button" aria-label="Expand">
-						<svg viewBox="0 0 24 24" class="arrow-icon" xmlns="http://www.w3.org/2000/svg">
-							<path d="M7 10l5 5 5-5" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-						</svg>
-					</button>
-					<div class="song-title row-item">Test Title</div>
-					<div class="song-time row-item">03:41</div>
-				</div>
-
-				<div class="song-sections">
-					<div class="row">Intro</div>
-					<div class="row">Verse</div>
-					<div class="row">Pre</div>
-
-				</div>
-			</div>
-			<div class="song">
-				<div class="song-item row">
-					<button class="arrow-button" aria-label="Expand">
-						<svg viewBox="0 0 24 24" class="arrow-icon" xmlns="http://www.w3.org/2000/svg">
-							<path d="M7 10l5 5 5-5" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-						</svg>
-					</button>
-					<div class="song-title row-item">Test Title</div>
-					<div class="song-time row-item">03:41</div>
-				</div>
-
-				<div class="song-sections">
-					<div class="row">Intro</div>
-					<div class="row">Verse</div>
-					<div class="row">Pre</div>
-
-				</div>
-			</div>
-		</div>
+	    {% for song in songs %}
+	        <div class="song">
+	            <div class="song-item row">
+	                <button class="arrow-button" onclick="this.nextElementSibling.classList.toggle('show')">
+	                    &#9660;
+	                </button>
+	                <div class="song-title row-item">
+	                    <a href="#" onclick="jumpTo({{ song.start }})">{{ song.title }}</a>
+	                </div>
+	                <div class="song-time row-item">
+	                    {{ (song.start // 60)|int }}:{{ '%02d' % (song.start % 60) }}
+	                </div>
+	            </div>
+	            <div class="song-sections">
+	                {% for section in song.sections %}
+	                    <div class="row">
+	                        <a href="#" onclick="jumpTo({{ section.time }})">{{ section.label }}</a>
+	                    </div>
+	                {% endfor %}
+	            </div>
+	        </div>
+	    {% endfor %}
 	</section>
 	<section id="transport">
 
 	</section>
+<script>
+  function jumpTo(time) {
+    fetch("/jump", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ timecode: time })
+    });
+  }
+
+  // Toggle expand/collapse
+  document.querySelectorAll(".arrow-button").forEach(button => {
+    button.addEventListener("click", () => {
+      const sections = button.closest(".song").querySelector(".song-sections");
+      if (sections) {
+        sections.classList.toggle("show");
+      }
+    });
+  });
+</script>
 </body>
 </html>
